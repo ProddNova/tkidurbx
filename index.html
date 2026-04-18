@@ -1,0 +1,826 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Randomizzatore Format Urbex</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --bg-soft: #171b22;
+      --card: #1d2430;
+      --text: #eef2ff;
+      --muted: #a9b4c8;
+      --accent: #60a5fa;
+      --accent-2: #22d3ee;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --radius: 14px;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: radial-gradient(circle at top, #17202d, var(--bg) 45%);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.4;
+    }
+
+    .container {
+      width: min(1200px, 95vw);
+      margin: 20px auto 60px;
+      display: grid;
+      gap: 16px;
+    }
+
+    h1 {
+      margin: 10px 0 0;
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
+      letter-spacing: 0.2px;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 1.1rem;
+    }
+
+    .subtitle { color: var(--muted); margin: 6px 0 0; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+    }
+
+    .card {
+      background: linear-gradient(170deg, rgba(255,255,255,0.02), rgba(255,255,255,0.005));
+      background-color: var(--card);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .filters { grid-column: span 12; }
+    .result { grid-column: span 8; }
+    .sidebar { grid-column: span 4; display: grid; gap: 16px; }
+
+    @media (max-width: 900px) {
+      .result, .sidebar { grid-column: span 12; }
+    }
+
+    .chip-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 8px;
+    }
+
+    .chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 10px;
+      border-radius: 10px;
+      background: var(--bg-soft);
+      border: 1px solid rgba(255,255,255,0.08);
+      font-size: 0.92rem;
+    }
+
+    input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); }
+
+    .mode-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn {
+      border: 1px solid rgba(255,255,255,0.12);
+      background: #253042;
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .15s ease, opacity .15s ease, background .2s;
+    }
+
+    .btn:hover { transform: translateY(-1px); background: #2d3a51; }
+    .btn:active { transform: translateY(0); }
+
+    .btn-primary {
+      font-size: 1.05rem;
+      padding: 14px 18px;
+      width: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      color: #00111f;
+      border: none;
+    }
+
+    .btn-danger { background: #3a1d26; }
+    .btn-ok { background: #173325; }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
+      margin: 10px 0;
+    }
+
+    .meta {
+      background: var(--bg-soft);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 10px;
+      padding: 10px;
+      font-size: .9rem;
+    }
+
+    .tag {
+      display: inline-block;
+      margin-right: 6px;
+      margin-top: 6px;
+      padding: 5px 8px;
+      border-radius: 99px;
+      background: #263247;
+      font-size: .78rem;
+      color: #cde1ff;
+    }
+
+    .hook-main {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 10px 0;
+      color: #d9ecff;
+    }
+
+    ul { margin: 8px 0 0 18px; padding: 0; }
+    li { margin: 5px 0; }
+
+    .tiny { font-size: .84rem; color: var(--muted); }
+    .empty {
+      color: var(--muted);
+      border: 1px dashed rgba(255,255,255,.2);
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    .history-item, .fav-item, .batch-item {
+      background: var(--bg-soft);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 10px;
+      padding: 10px;
+      margin-top: 8px;
+    }
+
+    .fav-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .pill {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: .75rem;
+      background: #1f3a59;
+    }
+
+    .fade { animation: fade .2s ease; }
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="card">
+      <h1>Randomizzatore Format Urbex</h1>
+      <p class="subtitle">Genera idee compatibili con le clip che hai già, senza blocchi creativi.</p>
+    </header>
+
+    <section class="card filters">
+      <h2>Sezione filtri</h2>
+      <p class="tiny">Scegli i pilastri e i tipi clip disponibili. Se non selezioni nulla, pesca da tutto.</p>
+      <h3>Filtra per tema</h3>
+      <div class="chip-grid" id="themeFilters"></div>
+      <h3>Filtra per clip disponibile</h3>
+      <div class="chip-grid" id="clipFilters"></div>
+    </section>
+
+    <section class="card">
+      <h2>Sezione modalità</h2>
+      <div class="mode-row" id="modeFilters"></div>
+      <div style="display:grid; grid-template-columns: 1fr; gap: 10px; margin-top:12px;">
+        <button class="btn btn-primary" id="generateBtn">Dammi un format</button>
+        <button class="btn" id="batchBtn">Modalità batch x5</button>
+      </div>
+    </section>
+
+    <div class="grid">
+      <section class="card result" id="resultCard">
+        <h2>Sezione risultato</h2>
+        <div id="resultBody" class="empty">Nessun format generato ancora.</div>
+        <div class="actions">
+          <button class="btn" id="otherHookBtn">Altro hook</button>
+          <button class="btn" id="copyHookBtn">Copia hook</button>
+          <button class="btn btn-ok" id="favBtn">Aggiungi ai preferiti</button>
+          <button class="btn btn-danger" id="discardBtn">Scarta questo format</button>
+          <button class="btn" id="regenBtn">Rigenera</button>
+        </div>
+      </section>
+
+      <aside class="sidebar">
+        <section class="card">
+          <h2>Bozza veloce</h2>
+          <div id="draftBody" class="empty">Genera un format per creare subito una bozza rapida.</div>
+        </section>
+
+        <section class="card">
+          <h2>Archivio / preferiti</h2>
+          <div id="favoritesBody" class="empty">Nessun preferito salvato.</div>
+        </section>
+
+        <section class="card">
+          <h2>Storico</h2>
+          <div id="historyBody" class="empty">Lo storico apparirà qui.</div>
+        </section>
+
+        <section class="card">
+          <h2>Batch x5</h2>
+          <div id="batchBody" class="empty">Premi “Modalità batch x5” per generare 5 idee insieme.</div>
+        </section>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    // Database interno: pilastri, sub-format, hook, metadati e compatibilità clip.
+    const formats = [
+      { id:'S1', pillar:'Scoperta / Twist', sub:'S1: Stavamo per andarcene → poi boom', desc:'Twist all’ultimo momento che cambia il senso dell’esplorazione.', hooks:[
+        'Stavamo per andarcene ma poi abbiamo visto questa cosa',
+        'Ce ne stavamo andando senza aver visto la parte più assurda',
+        'Pensavamo di aver visto tutto finché…',
+        'Eravamo a due minuti dall’uscire e poi…',
+        'Stavamo lasciando il posto quando ci siamo accorti di questo',
+        'Sembrava finita l’esplorazione, invece…'
+      ], categories:['Scoperta'], clipTypes:['reveal finale','clip per storytelling'], difficulty:'facile', power:'alta', saturation:'medio', speed:5, viral:4 },
+
+      { id:'S2', pillar:'Scoperta / Twist', sub:'S2: Pensavamo fosse vuoto → invece no', desc:'Aspettative basse, sorpresa alta: perfetto per retention iniziale.', hooks:[
+        'Pensavamo fosse completamente vuoto e invece…',
+        'Da fuori sembrava il solito posto senza niente',
+        'Credevamo non ci fosse rimasto nulla qui dentro',
+        'Sembrava uno di quei posti già svuotati del tutto',
+        'Onestamente non ci aspettavamo niente da questo posto',
+        'Pensavamo fosse l’ennesimo posto inutile e invece…'
+      ], categories:['Scoperta'], clipTypes:['reveal finale','clip per storytelling'], difficulty:'facile', power:'alta', saturation:'medio', speed:5, viral:4 },
+
+      { id:'S4', pillar:'Scoperta / Twist', sub:'S4: Ultima stanza / ultimo tentativo', desc:'Costruzione a countdown che porta alla scoperta finale.', hooks:[
+        'Ultima stanza e poi ce ne andavamo',
+        'Abbiamo provato a vedere un ultimo punto e…',
+        'Ci mancava solo un’ultima parte da controllare',
+        'Prima di andare via abbiamo fatto un ultimo tentativo',
+        'Eravamo convinti di aver finito, poi abbiamo aperto quest’ultima porta',
+        'Ultimo giro e poi basta… almeno così pensavamo'
+      ], categories:['Scoperta'], clipTypes:['reveal finale','clip per storytelling'], difficulty:'facile', power:'alta', saturation:'medio', speed:5, viral:4 },
+
+      { id:'S5', pillar:'Scoperta / Twist', sub:'S5: Sembrava normale finché…', desc:'Contrasto prima/dopo: setup ordinario, payoff forte.', hooks:[
+        'Sembrava una villa normalissima finché non abbiamo visto questo',
+        'All’inizio sembrava tutto normale ma poi…',
+        'Questo posto sembrava tranquillo finché…',
+        'Da fuori non sembrava niente di che, dentro cambia tutto',
+        'Pensavamo fosse una casa normale, poi abbiamo trovato…',
+        'Il posto sembrava normalissimo finché non siamo scesi qui sotto'
+      ], categories:['Scoperta'], clipTypes:['reveal finale','clip per storytelling'], difficulty:'facile', power:'alta', saturation:'medio', speed:5, viral:4 },
+
+      { id:'M1', pillar:'Soldi / Oggetti / Valore', sub:'M1: Quanto vale?', desc:'Domanda economica diretta: invita commenti e dibattito.', hooks:[
+        'Secondo voi quanto può valere questa cosa?',
+        'Ma questa roba qua quanto varrà?',
+        'Ho trovato questa cosa qui dentro: quanto dite che costa?',
+        'Non so se sto sottovalutando questa roba ma…',
+        'Quanto paghereste una cosa così trovata qui?',
+        'Secondo me questa vale più di quanto sembra'
+      ], categories:['Soldi/Oggetti'], clipTypes:['oggetto singolo','clip leggere / meme'], difficulty:'facile', power:'molto alta', saturation:'alto', speed:5, viral:5 },
+
+      { id:'M2', pillar:'Soldi / Oggetti / Valore', sub:'M2: Cosa prenderesti?', desc:'Interazione community: scelta secca tra oggetti.', hooks:[
+        'Quale di queste cose ti porteresti via?',
+        'Se potessi scegliere una sola cosa, quale prenderesti?',
+        'Tra tutte le cose trovate qui, tu cosa salveresti?',
+        'Quale oggetto vi ruberebbe subito l’occhio?',
+        'Se potessi prendere solo una di queste cose, quale sarebbe?',
+        'Quale di questi oggetti ti porteresti a casa senza pensarci?'
+      ], categories:['Soldi/Oggetti'], clipTypes:['più oggetti','clip con confronto'], difficulty:'facile', power:'alta', saturation:'medio', speed:5, viral:4 },
+
+      { id:'M3', pillar:'Soldi / Oggetti / Valore', sub:'M3: Diventare ricco / soldi facili', desc:'Narrativa “opportunità” ad alto potenziale click.', hooks:[
+        'Non sapevo si potesse diventare così ricchi facendo urbex',
+        'Forse ho capito come fare soldi facendo urbex',
+        'Questo posto è letteralmente un glitch per diventare ricchi',
+        'Pensavo fosse una cazzata, poi ho visto quanto vale questa roba',
+        'Capisci di poter fare soldi con l’urbex quando trovi queste cose',
+        'Non pensavo che esplorare un posto così potesse valere così tanto'
+      ], categories:['Soldi/Oggetti'], clipTypes:['oggetto singolo','più oggetti','clip per storytelling'], difficulty:'media', power:'molto alta', saturation:'alto', speed:4, viral:5 },
+
+      { id:'M4', pillar:'Soldi / Oggetti / Valore', sub:'M4: Oggetto assurdo', desc:'Un singolo oggetto fuori contesto guida tutto il video.', hooks:[
+        'Ma chi si dimentica una cosa così in un posto del genere?',
+        'La cosa più assurda è che qui dentro abbiamo trovato questo',
+        'Non riesco a capire chi lascerebbe una roba del genere qua',
+        'Di tutte le cose che potevo trovare qui, questa era l’ultima',
+        'Onestamente questa cosa qui dentro non ha senso',
+        'Ma perché una roba così è stata lasciata qua?'
+      ], categories:['Soldi/Oggetti'], clipTypes:['oggetto singolo','clip creepy'], difficulty:'facile', power:'alta', saturation:'medio', speed:5, viral:4 },
+
+      { id:'M5', pillar:'Soldi / Oggetti / Valore', sub:'M5: Lista di cose assurde trovate', desc:'Format a elenco, ottimo per video rapidi e seriali.', hooks:[
+        'Le cose più assurde trovate in questo posto',
+        '3 cose che non mi aspettavo di trovare qui dentro',
+        'Le cose più strane che abbiamo visto in questa villa',
+        'Quello che abbiamo trovato qui dentro non ha senso',
+        'Ecco le cose più folli trovate in questo posto',
+        'Non pensavo di trovare tutta questa roba qui dentro'
+      ], categories:['Soldi/Oggetti','Liste'], clipTypes:['più oggetti','clip per storytelling'], difficulty:'facile', power:'alta', saturation:'medio', speed:5, viral:4 },
+
+      { id:'T1', pillar:'Tensione / Pericolo', sub:'T1: Urbex è bello finché…', desc:'Escalation emotiva verso un momento critico.', hooks:[
+        'Fare urbex è bello finché non succede questo',
+        'Tutto bello finché non ti ritrovi in questa situazione',
+        'L’urbex è divertente finché non capisci questa cosa',
+        'Andava tutto bene finché…',
+        'Questo è il momento in cui l’urbex smette di essere divertente',
+        'Finché va tutto bene è bello, poi succede questo'
+      ], categories:['Tensione'], clipTypes:['clip creepy','clip per storytelling'], difficulty:'media', power:'alta', saturation:'medio', speed:3, viral:4 },
+
+      { id:'T4', pillar:'Tensione / Pericolo', sub:'T4: Abbiamo fatto un errore', desc:'Errore reale o percepito per creare tensione narrativa.', hooks:[
+        'Abbiamo fatto un errore enorme entrando qui',
+        'Dopo pochi minuti abbiamo capito di aver sbagliato tutto',
+        'Il problema è che abbiamo fatto una cazzata appena entrati',
+        'A un certo punto ci siamo resi conto dell’errore',
+        'Pensavamo fosse una buona idea, non lo era',
+        'L’errore peggiore è stato pensare che fosse tutto tranquillo'
+      ], categories:['Tensione'], clipTypes:['clip creepy','clip per storytelling','entrata difficile'], difficulty:'media', power:'alta', saturation:'medio', speed:3, viral:4 },
+
+      { id:'T5', pillar:'Tensione / Pericolo', sub:'T5: Segnale strano / qualcosa non torna', desc:'Dettaglio inquietante come gancio per sviluppare suspense.', hooks:[
+        'C’era una cosa strana in questo posto e non ci tornava',
+        'Questo dettaglio ci ha fatto capire che qualcosa non andava',
+        'All’inizio sembrava tutto normale, poi abbiamo visto questo segnale',
+        'Una cosa così in un posto del genere non è normale',
+        'Appena abbiamo visto questo dettaglio abbiamo capito che c’era qualcosa di strano',
+        'Questo è il tipo di segnale che non vorresti mai trovare qui dentro'
+      ], categories:['Tensione'], clipTypes:['clip creepy','clip per storytelling'], difficulty:'media', power:'alta', saturation:'medio', speed:3, viral:4 },
+
+      { id:'I1', pillar:'Identità / Mentalità / Community', sub:'I1: Vandali vs noi', desc:'Posizionamento etico chiaro e differenziazione del canale.', hooks:[
+        'La differenza tra vandali e chi fa urbex davvero',
+        'C’è chi entra per distruggere e chi entra per esplorare',
+        'Ecco perché i vandali non c’entrano niente con l’urbex',
+        'Questa è la differenza tra rovinare e rispettare un posto',
+        'Chi vandalizza non ha capito nulla dell’urbex',
+        'Noi entriamo così, i vandali entrano in un altro modo'
+      ], categories:['Identità'], clipTypes:['clip con confronto','clip per storytelling'], difficulty:'facile', power:'media', saturation:'basso', speed:5, viral:3 },
+
+      { id:'I2', pillar:'Identità / Mentalità / Community', sub:'I2: Perché non condividiamo i posti', desc:'Educativo + difensivo: protegge location e community.', hooks:[
+        'Ecco perché non diciamo mai dove si trovano questi posti',
+        'Se ti sei mai chiesto perché non condividiamo i posti, guarda qua',
+        'Questo è il motivo per cui certe location non vanno date a nessuno',
+        'La gente poi si chiede perché non diciamo i posti',
+        'Se vuoi capire perché non condividiamo le location, basta vedere questo',
+        'Ogni volta che qualcuno chiede la posizione penso a questo'
+      ], categories:['Identità'], clipTypes:['clip per storytelling','clip con confronto'], difficulty:'facile', power:'media', saturation:'basso', speed:5, viral:3 },
+
+      { id:'I3', pillar:'Identità / Mentalità / Community', sub:'I3: Solo chi fa urbex capisce', desc:'Contenuto relazionale che rafforza appartenenza e commenti.', hooks:[
+        'Solo chi fa urbex capisce questa sensazione',
+        'Se fai urbex sai esattamente di cosa parlo',
+        'Chi non fa urbex questa cosa non la capirà mai',
+        'Solo chi esplora sa cosa si prova in momenti così',
+        'Ci sono cose che capisce solo chi entra davvero in questi posti',
+        'Se fai urbex questa scena la conosci fin troppo bene'
+      ], categories:['Identità'], clipTypes:['clip per storytelling','clip leggere / meme'], difficulty:'facile', power:'media', saturation:'medio', speed:5, viral:3 },
+
+      { id:'I4', pillar:'Identità / Mentalità / Community', sub:'I4: Amici veri / gente giusta con cui farlo', desc:'Story umano e community-centered con tono positivo.', hooks:[
+        'Avere amici così cambia tutto',
+        'La vera fortuna è trovare qualcuno che ha voglia di fare queste cose',
+        'Non tutti hanno gente così con cui fare urbex',
+        'Quando trovi le persone giuste, l’urbex cambia livello',
+        'Avere qualcuno che parte davvero con te vale tantissimo',
+        'Il problema non è trovare i posti, è trovare la gente giusta'
+      ], categories:['Identità'], clipTypes:['clip per storytelling','clip leggere / meme'], difficulty:'facile', power:'media', saturation:'basso', speed:5, viral:3 },
+
+      { id:'B', pillar:'DLC B — Lore / mini storia', sub:'DLC B: Lore / mini storia', desc:'Micro-trama narrativa adatta a serie episodiche.', hooks:[
+        'Questa è l’ultima posizione in cui è stato visto il mio amico',
+        'Pensavamo di essere soli qui dentro, poi…',
+        'Questo posto ha una storia strana e si sente',
+        'Mi hanno detto di incontrarci qui…',
+        'C’è una cosa inquietante dietro questo posto',
+        'All’inizio sembrava solo un posto creepy, poi la storia è peggiorata'
+      ], categories:['Lore'], clipTypes:['clip per storytelling','clip creepy'], difficulty:'alta', power:'molto alta', saturation:'medio', speed:2, viral:5 },
+
+      { id:'C', pillar:'DLC C — Critica → ribaltamento', sub:'DLC C: Critica → ribaltamento', desc:'Parte da critica/commento e la ribalta con prova video.', hooks:[
+        'Che ci fai nei posti abbandonati? Boh, questo',
+        'La gente dice che nei posti abbandonati non c’è niente da vedere',
+        'Quando ti dicono che è una perdita di tempo',
+        'Chi dice che l’urbex è inutile non ha mai visto posti così',
+        'I posti abbandonati sono noiosi… certo',
+        'Se pensi che l’urbex sia noioso guarda questo',
+        'Mi avevano detto che non ne valeva la pena',
+        'Ci avevano detto di lasciar perdere questo posto',
+        'Non puoi entrare qui dentro…',
+        'Ci avevano detto che era impossibile entrarci',
+        'Mi hanno scritto questo commento e quindi vi faccio vedere',
+        'Dopo questo commento dovevo per forza rispondere così'
+      ], categories:['Critica/Ribaltamento'], clipTypes:['clip con confronto','clip per storytelling'], difficulty:'media', power:'molto alta', saturation:'medio', speed:4, viral:5 },
+
+      { id:'D', pillar:'DLC D — Liste / compilation', sub:'DLC D: Liste / compilation', desc:'Compilations verticali ideali per batch di contenuti.', hooks:[
+        'Le cose più assurde che ho trovato negli ospedali abbandonati',
+        'Le cose più creepy trovate mentre facevamo urbex',
+        'Le 3 cose più strane viste in posti abbandonati',
+        'I posti più assurdi in cui siamo entrati finora',
+        'Le cose che continuano a comparire nei posti abbandonati',
+        'Le scoperte più folli trovate ultimamente'
+      ], categories:['Liste'], clipTypes:['più oggetti','clip per storytelling'], difficulty:'facile', power:'alta', saturation:'medio', speed:5, viral:4 },
+
+      { id:'E', pillar:'DLC E — Entrare è impossibile', sub:'DLC E: Entrare è impossibile', desc:'Hook basato su barriera d’accesso + soluzione.', hooks:[
+        'Ci avevano detto che qui dentro non si poteva entrare',
+        'Sembrava tutto sigillato ma un modo c’era',
+        'Pensavamo fosse impossibile entrarci e invece…',
+        'Questo posto sembrava completamente chiuso',
+        'La parte assurda è che sembrava inaccessibile',
+        'Non pensavamo esistesse un modo per entrare qui'
+      ], categories:['Entrata impossibile'], clipTypes:['entrata difficile','clip per storytelling'], difficulty:'media', power:'alta', saturation:'medio', speed:3, viral:4 },
+
+      { id:'F', pillar:'DLC F — Cosa facciamo davvero dentro', sub:'DLC F: Cosa facciamo davvero dentro', desc:'Smonta stereotipi con scene pratiche e ritmo.', hooks:[
+        'La gente pensa che facciamo solo foto, in realtà…',
+        'Che ci fai davvero in un posto abbandonato?',
+        'Quando dicono che nei posti abbandonati ti annoi',
+        'Quello che facciamo davvero mentre esploriamo',
+        'Se pensi che l’urbex sia solo camminare, ti sbagli',
+        'I posti abbandonati sono noiosi? Non direi'
+      ], categories:['Attività'], clipTypes:['clip con confronto','clip leggere / meme'], difficulty:'facile', power:'alta', saturation:'basso', speed:5, viral:4 },
+
+      { id:'G', pillar:'DLC G — Trovata improvvisa', sub:'DLC G: Trovata improvvisa', desc:'Scoperta casuale ottima per storytelling spontaneo.', hooks:[
+        'Stavo camminando nel bosco quando ho trovato questo',
+        'Non stavamo cercando niente e ci siamo ritrovati qui',
+        'Google Maps ci ha portato in un posto assurdo',
+        'Mentre andavamo via abbiamo trovato questo',
+        'Era solo una strada nel nulla finché non abbiamo visto…',
+        'Passeggiando ci siamo imbattuti in questa cosa assurda'
+      ], categories:['Trovata improvvisa'], clipTypes:['clip casual trovata','clip per storytelling'], difficulty:'facile', power:'alta', saturation:'medio', speed:5, viral:4 },
+
+      { id:'H', pillar:'DLC H — Scala assurda / non era solo un posto', sub:'DLC H: Scala assurda / non era solo un posto', desc:'Progressione di scala: il posto continua ad allargarsi.', hooks:[
+        'Pensavamo fosse solo una villa e invece era molto di più',
+        'All’inizio sembrava un posto normale, poi abbiamo capito quanto era enorme',
+        'Non ci aspettavamo una roba di questa scala',
+        'Il problema è che questo posto continuava a diventare sempre più grande'
+      ], categories:['Scala assurda'], clipTypes:['posto enorme','clip per storytelling'], difficulty:'media', power:'molto alta', saturation:'medio', speed:3, viral:5 }
+    ];
+
+    const themeOptions = ['Scoperta','Soldi/Oggetti','Tensione','Identità','Lore','Critica/Ribaltamento','Liste','Entrata impossibile','Attività','Trovata improvvisa','Scala assurda'];
+    const clipOptions = ['reveal finale','oggetto singolo','più oggetti','posto enorme','entrata difficile','clip creepy','clip con confronto','clip casual trovata','clip per storytelling','clip leggere / meme'];
+    const modeOptions = ['Totale','Anti-blocco','Spinta views'];
+
+    const clipPreference = {
+      'oggetto singolo': ['M1','M4'],
+      'reveal finale': ['S1','S4','S5'],
+      'clip per storytelling': ['B'],
+      'posto enorme': ['H']
+    };
+
+    const state = {
+      current: null,
+      mainHook: '',
+      discarded: new Set(),
+      history: [],
+      favorites: JSON.parse(localStorage.getItem('urbexFavorites') || '[]')
+    };
+
+    const els = {
+      themeFilters: document.getElementById('themeFilters'),
+      clipFilters: document.getElementById('clipFilters'),
+      modeFilters: document.getElementById('modeFilters'),
+      resultBody: document.getElementById('resultBody'),
+      draftBody: document.getElementById('draftBody'),
+      favoritesBody: document.getElementById('favoritesBody'),
+      historyBody: document.getElementById('historyBody'),
+      batchBody: document.getElementById('batchBody')
+    };
+
+    function renderFilterGroup(target, items, type, name = '') {
+      target.innerHTML = items.map(item => `
+        <label class="chip">
+          <input type="${type}" name="${name}" value="${item}" ${type === 'radio' && item === 'Totale' ? 'checked' : ''}>
+          <span>${item}</span>
+        </label>
+      `).join('');
+    }
+
+    function selectedValues(selector) {
+      return [...document.querySelectorAll(selector)].filter(i => i.checked).map(i => i.value);
+    }
+
+    function getMode() {
+      return document.querySelector('input[name="mode"]:checked')?.value || 'Totale';
+    }
+
+    function weightedPick(items) {
+      const total = items.reduce((s, i) => s + i.weight, 0);
+      let r = Math.random() * total;
+      for (const item of items) {
+        r -= item.weight;
+        if (r <= 0) return item.format;
+      }
+      return items[items.length - 1].format;
+    }
+
+    function computeCandidates(excludedIds = new Set()) {
+      const selectedThemes = selectedValues('#themeFilters input[type="checkbox"]');
+      const selectedClips = selectedValues('#clipFilters input[type="checkbox"]');
+      const mode = getMode();
+
+      let candidates = formats.filter(f => !state.discarded.has(f.id) && !excludedIds.has(f.id));
+
+      if (selectedThemes.length) {
+        candidates = candidates.filter(f => selectedThemes.some(t => f.categories.includes(t)));
+      }
+      if (selectedClips.length) {
+        candidates = candidates.filter(f => selectedClips.some(c => f.clipTypes.includes(c)));
+      }
+
+      if (!candidates.length) return [];
+
+      return candidates.map(format => {
+        const themeMatch = selectedThemes.filter(t => format.categories.includes(t)).length;
+        const clipMatch = selectedClips.filter(c => format.clipTypes.includes(c)).length;
+        let weight = 1 + (themeMatch * 1.2) + (clipMatch * 1.6);
+
+        selectedClips.forEach(c => {
+          if (clipPreference[c]?.includes(format.id)) weight += 3.2;
+        });
+
+        if (mode === 'Anti-blocco') {
+          const easyBoost = format.difficulty === 'facile' ? 2.4 : format.difficulty === 'media' ? 1.3 : 0.6;
+          weight *= easyBoost * (format.speed / 3);
+        }
+
+        if (mode === 'Spinta views') {
+          const pBoost = format.power === 'molto alta' ? 2.4 : format.power === 'alta' ? 1.6 : 1;
+          weight *= pBoost * (format.viral / 3);
+        }
+
+        return { format, weight: Math.max(0.2, weight) };
+      });
+    }
+
+    function pickHooks(format) {
+      const hooks = [...format.hooks];
+      const main = hooks.splice(Math.floor(Math.random() * hooks.length), 1)[0];
+      const alternatives = hooks.sort(() => Math.random() - 0.5).slice(0, 3);
+      return { main, alternatives };
+    }
+
+    function generateFormat() {
+      const candidates = computeCandidates();
+      if (!candidates.length) {
+        els.resultBody.innerHTML = '<div class="empty">Nessun format compatibile con i filtri attuali o con gli scarti della sessione. Rimuovi qualche filtro o azzera gli scarti ricaricando pagina.</div>';
+        return;
+      }
+      const format = weightedPick(candidates);
+      state.current = format;
+      const { main, alternatives } = pickHooks(format);
+      state.mainHook = main;
+
+      state.history.unshift({ id: format.id, sub: format.sub, hook: main, when: new Date().toLocaleTimeString('it-IT') });
+      state.history = state.history.slice(0, 8);
+
+      renderCurrent(main, alternatives);
+      renderDraft();
+      renderHistory();
+    }
+
+    function renderCurrent(main, alternatives) {
+      const f = state.current;
+      if (!f) return;
+
+      els.resultBody.classList.remove('empty');
+      els.resultBody.classList.add('fade');
+      els.resultBody.innerHTML = `
+        <div><strong>Pilastro:</strong> ${f.pillar}</div>
+        <div><strong>Sub-format:</strong> ${f.sub}</div>
+        <p>${f.desc}</p>
+        <div class="hook-main">Hook principale: “${main}”</div>
+        <div><strong>3 hook alternativi</strong></div>
+        <ul>${alternatives.map(h => `<li>${h}</li>`).join('')}</ul>
+        <div class="meta-grid">
+          <div class="meta"><strong>Tipo di clip ideale</strong><br>${f.clipTypes[0]}</div>
+          <div class="meta"><strong>Difficoltà</strong><br>${f.difficulty}</div>
+          <div class="meta"><strong>Forza potenziale</strong><br>${f.power}</div>
+          <div class="meta"><strong>Rischio saturazione</strong><br>${f.saturation}</div>
+        </div>
+        <div>${f.clipTypes.map(c => `<span class="tag">${c}</span>`).join('')}</div>
+      `;
+      setTimeout(() => els.resultBody.classList.remove('fade'), 220);
+    }
+
+    function draftTemplate(format, hook) {
+      const mainClip = format.clipTypes[0];
+      let clip2 = 'Mostra il dettaglio che aumenta curiosità.';
+      let clip3 = 'Svela l’elemento chiave con ritmo rapido.';
+      let payoff = 'Chiudi con domanda/comment bait per spingere interazioni.';
+
+      if (mainClip.includes('oggetto singolo')) {
+        clip2 = 'Inquadratura ravvicinata dell’oggetto con contesto.';
+        clip3 = 'Confronto valore/rarità e reazione del team.';
+      } else if (mainClip.includes('più oggetti')) {
+        clip2 = 'Lista rapida elemento 1-2 con testo in sovrimpressione.';
+        clip3 = 'Elemento 3 + mini classifica personale.';
+      } else if (mainClip.includes('posto enorme')) {
+        clip2 = 'Panoramica che mostra quanto è grande il posto.';
+        clip3 = 'Passaggio in una zona ancora più grande o inattesa.';
+      } else if (mainClip.includes('entrata difficile')) {
+        clip2 = 'Mostra ostacolo/ingresso complesso senza dettagli sensibili.';
+        clip3 = 'Transizione dentro la location con cambio tono.';
+      } else if (mainClip.includes('clip creepy')) {
+        clip2 = 'Dettaglio strano + suono ambiente per tensione.';
+        clip3 = 'Momento in cui capite che qualcosa non torna.';
+      } else if (mainClip.includes('confronto')) {
+        clip2 = 'Mostra critica/opinione comune da ribaltare.';
+        clip3 = 'Prova visiva che smentisce la critica.';
+      }
+
+      return {
+        title: `${hook.replace('…','').replace('?', '')} | Urbex`,
+        hook,
+        clip1: 'Apri subito con hook parlato + testo grande a schermo.',
+        clip2,
+        clip3,
+        payoff
+      };
+    }
+
+    function renderDraft() {
+      if (!state.current) return;
+      const d = draftTemplate(state.current, state.mainHook);
+      els.draftBody.classList.remove('empty');
+      els.draftBody.innerHTML = `
+        <div><strong>Idea titolo:</strong> ${d.title}</div>
+        <div><strong>Hook principale:</strong> ${d.hook}</div>
+        <div style="margin-top:8px;"><strong>Struttura rapida</strong></div>
+        <ul>
+          <li><strong>clip 1:</strong> ${d.clip1}</li>
+          <li><strong>clip 2:</strong> ${d.clip2}</li>
+          <li><strong>clip 3:</strong> ${d.clip3}</li>
+          <li><strong>payoff finale:</strong> ${d.payoff}</li>
+        </ul>
+      `;
+    }
+
+    function saveFavorites() {
+      localStorage.setItem('urbexFavorites', JSON.stringify(state.favorites));
+    }
+
+    function addFavorite() {
+      if (!state.current) return;
+      const key = `${state.current.id}|${state.mainHook}`;
+      if (state.favorites.some(f => f.key === key)) return;
+      state.favorites.unshift({
+        key,
+        id: state.current.id,
+        sub: state.current.sub,
+        pillar: state.current.pillar,
+        hook: state.mainHook
+      });
+      state.favorites = state.favorites.slice(0, 40);
+      saveFavorites();
+      renderFavorites();
+    }
+
+    function removeFavorite(key) {
+      state.favorites = state.favorites.filter(f => f.key !== key);
+      saveFavorites();
+      renderFavorites();
+    }
+
+    function renderFavorites() {
+      if (!state.favorites.length) {
+        els.favoritesBody.className = 'empty';
+        els.favoritesBody.textContent = 'Nessun preferito salvato.';
+        return;
+      }
+      els.favoritesBody.className = '';
+      els.favoritesBody.innerHTML = state.favorites.map(f => `
+        <div class="fav-item">
+          <div class="fav-head">
+            <strong>${f.id}</strong>
+            <button class="btn" data-remove-fav="${f.key}">Rimuovi</button>
+          </div>
+          <div class="tiny">${f.pillar}</div>
+          <div>${f.sub}</div>
+          <div class="hook-main" style="font-size:.95rem;">${f.hook}</div>
+        </div>
+      `).join('');
+
+      els.favoritesBody.querySelectorAll('[data-remove-fav]').forEach(btn => {
+        btn.addEventListener('click', () => removeFavorite(btn.dataset.removeFav));
+      });
+    }
+
+    function renderHistory() {
+      if (!state.history.length) {
+        els.historyBody.className = 'empty';
+        els.historyBody.textContent = 'Lo storico apparirà qui.';
+        return;
+      }
+      els.historyBody.className = '';
+      els.historyBody.innerHTML = state.history.map(h => `
+        <div class="history-item">
+          <div><strong>${h.id}</strong> <span class="pill">${h.when}</span></div>
+          <div>${h.sub}</div>
+          <div class="tiny">${h.hook}</div>
+        </div>
+      `).join('');
+    }
+
+    function newHookOnly() {
+      if (!state.current) return;
+      const pool = state.current.hooks.filter(h => h !== state.mainHook);
+      if (!pool.length) return;
+      state.mainHook = pool[Math.floor(Math.random() * pool.length)];
+      const alternatives = state.current.hooks.filter(h => h !== state.mainHook).sort(() => Math.random() - 0.5).slice(0, 3);
+      renderCurrent(state.mainHook, alternatives);
+      renderDraft();
+    }
+
+    async function copyHook() {
+      if (!state.mainHook) return;
+      try {
+        await navigator.clipboard.writeText(state.mainHook);
+      } catch {
+        const tmp = document.createElement('textarea');
+        tmp.value = state.mainHook;
+        document.body.appendChild(tmp);
+        tmp.select();
+        document.execCommand('copy');
+        tmp.remove();
+      }
+    }
+
+    function discardCurrent() {
+      if (!state.current) return;
+      state.discarded.add(state.current.id);
+      generateFormat();
+    }
+
+    function generateBatch() {
+      const used = new Set();
+      const ideas = [];
+      for (let i = 0; i < 5; i++) {
+        const candidates = computeCandidates(used);
+        if (!candidates.length) break;
+        const picked = weightedPick(candidates);
+        used.add(picked.id);
+        const { main } = pickHooks(picked);
+        ideas.push({ format: picked, hook: main });
+      }
+
+      if (!ideas.length) {
+        els.batchBody.className = 'empty';
+        els.batchBody.textContent = 'Nessuna idea batch compatibile con i filtri/scarti correnti.';
+        return;
+      }
+
+      els.batchBody.className = '';
+      els.batchBody.innerHTML = ideas.map((i, idx) => `
+        <div class="batch-item">
+          <strong>#${idx + 1} · ${i.format.id}</strong>
+          <div>${i.format.sub}</div>
+          <div class="tiny">${i.hook}</div>
+        </div>
+      `).join('');
+    }
+
+    // Render iniziale UI
+    renderFilterGroup(els.themeFilters, themeOptions, 'checkbox');
+    renderFilterGroup(els.clipFilters, clipOptions, 'checkbox');
+    renderFilterGroup(els.modeFilters, modeOptions, 'radio', 'mode');
+    renderFavorites();
+    renderHistory();
+
+    // Eventi principali
+    document.getElementById('generateBtn').addEventListener('click', generateFormat);
+    document.getElementById('regenBtn').addEventListener('click', generateFormat);
+    document.getElementById('otherHookBtn').addEventListener('click', newHookOnly);
+    document.getElementById('copyHookBtn').addEventListener('click', copyHook);
+    document.getElementById('favBtn').addEventListener('click', addFavorite);
+    document.getElementById('discardBtn').addEventListener('click', discardCurrent);
+    document.getElementById('batchBtn').addEventListener('click', generateBatch);
+  </script>
+</body>
+</html>
